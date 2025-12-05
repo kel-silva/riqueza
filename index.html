@@ -1,478 +1,660 @@
- html
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>DK Upload Financeiro</title>
-<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.3/sql-wasm.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<style>
-  :root {
-    --primary: #2e8b57;
-    --primary-dark: #1e6b42;
-    --accent: #ffd700;
-    --text: #333;
-    --bg: #f8fff8;
-    --card: #ffffff;
-  }
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-  body { font-family: 'Roboto', sans-serif; background: var(--bg); color: var(--text); line-height: 1.6; }
-  header { background: var(--primary); color: white; text-align: center; padding: 1.5rem; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-  header h1 { font-size: 2rem; margin-bottom: 0.5rem; }
-  header p { font-size: 1.1rem; opacity: 0.9; }
-  nav { background: #333; }
-  nav ul { display: flex; flex-wrap: wrap; justify-content: center; list-style: none; }
-  nav li a { display: block; padding: 1rem 1.5rem; color: white; text-decoration: none; transition: 0.3s; }
-  nav li a:hover, nav li a.active { background: var(--primary); }
-  .container { max-width: 1100px; margin: 0 auto; padding: 1rem; }
-  .tab-content { display: none; padding: 2rem 1rem; background: var(--card); margin: 1rem; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
-  .tab-content.active { display: block; }
-  .card { background: white; padding: 1.5rem; border-radius: 10px; margin: 1rem 0; box-shadow: 0 3px 10px rgba(0,0,0,0.08); }
-  h2 { color: var(--primary-dark); border-bottom: 3px solid var(--accent); padding-bottom: 0.5rem; }
-  button { background: var(--primary); color: white; border: none; padding: 0.8rem 1.5rem; border-radius: 8px; cursor: pointer; font-size: 1rem; transition: 0.3s; }
-  button:hover { background: var(--primary-dark); transform: translateY(-2px); }
-  input, select { padding: 0.8rem; margin: 0.5rem 0; border: 1px solid #ccc; border-radius: 6px; width: 100%; }
-  table { width: 100%; border-collapse: collapse; margin: 1rem 0; }
-  th, td { padding: 0.8rem; text-align: left; border-bottom: 1px solid #ddd; }
-  th { background: var(--primary); color: white; }
-  .receita { color: green; font-weight: bold; }
-  .despesa { color: red; font-weight: bold; }
-  .pergunta { background: #f9f9f9; padding: 1rem; border-radius: 8px; margin: 1rem 0; }
-  .resultado { background: var(--primary); color: white; padding: 2rem; border-radius: 12px; text-align: center; margin: 2rem 0; }
-  #progress-bar { height: 30px; background: #eee; border-radius: 15px; overflow: hidden; margin: 1rem 0; }
-  #progress-fill { height: 100%; background: var(--primary); width: 0%; transition: width 0.8s ease; }
-  @media (max-width: 768px) {
-    nav ul { flex-direction: column; }
-    nav li a { text-align: center; }
-  }
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#1a1a2e">
+    <title>DK Upload - Ecossistema de Sucesso</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script src="https://unpkg.com/dexie/dist/dexie.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        :root {
+            --bg-gradient: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            --glass: rgba(255, 255, 255, 0.05);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --primary: #0f3460;
+            --accent: #e94560;
+            --success: #00b894;
+            --text: #ffffff;
+            --text-secondary: #b2b2b2;
+            --nav-height: 70px;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: var(--bg-gradient);
+            color: var(--text);
+            min-height: 100vh;
+            padding-bottom: calc(var(--nav-height) + 20px);
+            overflow-x: hidden;
+        }
+
+        /* --- Header & Gamification --- */
+        header {
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(22, 33, 62, 0.9);
+            backdrop-filter: blur(10px);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            border-bottom: 1px solid var(--glass-border);
+        }
+
+        .user-profile { display: flex; align-items: center; gap: 10px; }
+        .avatar { width: 45px; height: 45px; background: var(--accent); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 1.2rem; box-shadow: 0 0 10px rgba(233, 69, 96, 0.3); }
+        .user-info h3 { font-size: 0.9rem; margin-bottom: 2px; }
+        .level-badge { font-size: 0.7rem; background: var(--success); padding: 2px 8px; border-radius: 10px; color: #000; font-weight: 700; }
+        
+        .xp-container { width: 100px; text-align: right; }
+        .xp-bar { width: 100%; height: 6px; background: rgba(255,255,255,0.1); border-radius: 3px; overflow: hidden; margin-top: 5px; }
+        .xp-fill { height: 100%; background: var(--accent); width: 0%; transition: width 0.5s ease; }
+        .xp-text { font-size: 0.7rem; color: var(--text-secondary); }
+
+        /* --- Layout & Cards --- */
+        .container { max-width: 800px; margin: 0 auto; padding: 15px; animation: fadeIn 0.5s ease; position: relative; }
+        
+        .section { display: none; }
+        .section.active { display: block; animation: slideIn 0.3s ease-out; }
+
+        .card {
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 20px;
+            backdrop-filter: blur(5px);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        h2 { font-size: 1.4rem; margin-bottom: 15px; border-left: 4px solid var(--accent); padding-left: 10px; }
+
+        /* --- Forms & Inputs --- */
+        input, select, button { width: 100%; padding: 12px; margin-bottom: 10px; border-radius: 8px; border: 1px solid var(--glass-border); background: rgba(0,0,0,0.2); color: white; font-family: inherit; outline: none; }
+        input:focus, select:focus { border-color: var(--accent); background: rgba(0,0,0,0.4); }
+        option { background: #16213e; color: white; }
+
+        button { background: var(--accent); border: none; font-weight: 600; cursor: pointer; transition: transform 0.2s; margin-top: 10px; }
+        button:active { transform: scale(0.98); }
+        button.secondary { background: transparent; border: 1px solid var(--glass-border); }
+        button:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        /* --- Navigation Bottom Bar --- */
+        .nav-bar {
+            position: fixed; bottom: 0; left: 0; width: 100%; height: var(--nav-height);
+            background: rgba(22, 33, 62, 0.95);
+            backdrop-filter: blur(10px);
+            display: flex; justify-content: space-around; align-items: center;
+            border-top: 1px solid var(--glass-border);
+            z-index: 1000;
+        }
+        .nav-item { color: var(--text-secondary); text-align: center; font-size: 0.8rem; padding: 10px; transition: 0.3s; cursor: pointer; flex: 1; }
+        .nav-item i { font-size: 1.2rem; margin-bottom: 4px; display: block; }
+        .nav-item.active { color: var(--accent); transform: translateY(-5px); }
+        .nav-item.active i { filter: drop-shadow(0 0 5px var(--accent)); }
+
+        /* --- Specific Modules --- */
+        .balance-hero { text-align: center; padding: 30px 0; }
+        .balance-amount { font-size: 2.5rem; font-weight: 700; color: var(--success); text-shadow: 0 0 20px rgba(0, 184, 148, 0.3); }
+        
+        .trans-item { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid rgba(255,255,255,0.05); align-items: center; }
+        .trans-info h4 { font-size: 1rem; }
+        .trans-info span { font-size: 0.8rem; color: var(--text-secondary); }
+        .money-plus { color: var(--success); font-weight: bold; }
+        .money-minus { color: #ff6b6b; font-weight: bold; }
+
+        .lesson-check { display: flex; align-items: center; gap: 10px; margin-top: 10px; }
+        
+        /* --- Animations --- */
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes slideIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        .levelup-popup { 
+            position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0);
+            background: linear-gradient(135deg, #e94560, #c0392b); padding: 30px; border-radius: 20px;
+            text-align: center; z-index: 2000; display: none; box-shadow: 0 0 50px rgba(233, 69, 96, 0.5);
+            width: 80%; max-width: 300px;
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .levelup-popup.show { transform: translate(-50%, -50%) scale(1); display: block; }
+        
+        /* Chart Container */
+        .chart-container { position: relative; height: 300px; width: 100%; }
+        
+        /* Language Selector */
+        .lang-select { 
+            width: auto; padding: 5px 10px; background: rgba(0,0,0,0.3); font-size: 0.8rem; border-radius: 20px; margin-bottom: 10px; display: block; margin-left: auto;
+        }
+    </style>
 </head>
 <body>
-<header>
-  <h1>DK Upload Financeiro</h1>
-  <p>Seu aplicativo completo de educação financeira, controle e direcionamento empresarial - 100% offline</p>
-</header>
 
-<nav>
-  <ul>
-    <li><a href="#licoes" class="active" onclick="openTab('licoes')">Lições dos Sábios</a></li>
-    <li><a href="#controle" onclick="openTab('controle')">Controle Financeiro</a></li>
-    <li><a href="#gestao" onclick="openTab('gestao')">Gestão Empresarial</a></li>
-    <li><a href="#simulador" onclick="openTab('simulador')">Simulador</a></li>
-    <li><a href="#assistente" onclick="openTab('assistente')">Assistente de Negócios</a></li>
-  </ul>
-</nav>
-
-<div class="container">
-
-  <!-- LIÇÕES DOS SÁBIOS -->
-  <div id="licoes" class="tab-content active">
-    <div class="card">
-      <h2>🏛 Lições dos Sábios do Sucesso</h2>
-      <div id="progress-bar"><div id="progress-fill"></div></div>
-      <p><strong>Progresso: <span id="progress-text">0%</span></strong></p>
-      <div id="lessons-list"></div>
+    <div id="levelup-modal" class="levelup-popup">
+        <h1><i class="fas fa-crown"></i> LEVEL UP!</h1>
+        <p data-i18n="newLevel">Você alcançou o nível:</p>
+        <h2 id="new-level-name" style="font-size: 1.8rem; margin: 10px 0;">Mestre</h2>
+        <button onclick="closeLevelModal()" style="background: white; color: var(--accent);" data-i18n="awesome">Incrível!</button>
     </div>
-  </div>
 
-  <!-- CONTROLE FINANCEIRO 
-  <div id="controle" class="tab-content">
-    <div class="card">
-      <h2>💰 Controle Financeiro</h2>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
-        <div>
-          <select id="type-trans"><option value="Receita">Receita</option><option value="Despesa">Despesa</option></select>
-          <input type="number" id="valor-trans" placeholder="Valor (R$)" step="0.01" required>
-          <input type="text" id="categoria-trans" placeholder="Categoria (ex: Salário, Alimentação)">
-          <input type="text" id="desc-trans" placeholder="Descrição">
-          <input type="date" id="data-trans">
-          <button onclick="addTransaction()">Adicionar</button>
+    <header>
+        <div class="user-profile">
+            <div class="avatar"><i class="fas fa-user"></i></div>
+            <div class="user-info">
+                <h3 id="user-name">Visitante</h3>
+                <span class="level-badge" id="user-rank">Iniciante</span>
+            </div>
         </div>
-        <div style="text-align:center;padding-top:2rem;font-size:1.8rem;color:var(--primary-dark);">
-          Saldo Atual: <span id="saldo-atual">R$ 0,00</span>
+        <div class="xp-container">
+            <div class="xp-bar"><div class="xp-fill" id="xp-fill"></div></div>
+            <span class="xp-text">XP: <span id="xp-val">0</span>/100</span>
         </div>
-      </div>
-      <table id="tabela-transacoes">
-        <thead>
-          <tr><th>Data</th><th>Tipo</th><th>Categoria</th><th>Descrição</th><th>Valor</th></tr>
-        </thead>
-        <tbody></tbody>
-      </table>
+    </header>
+
+    <div class="container">
+        <select id="lang-selector" class="lang-select" onchange="changeLanguage(this.value)">
+            <option value="pt">🇧🇷 PT</option>
+            <option value="en">🇺🇸 EN</option>
+            <option value="es">🇪🇸 ES</option>
+        </select>
+
+        <div id="dash" class="section active">
+            <div class="card balance-hero">
+                <span data-i18n="currentBalance">Saldo Atual</span>
+                <div class="balance-amount" id="total-balance">R$ 0,00</div>
+                <div style="display:flex; gap:10px; margin-top:20px;">
+                    <button onclick="navTo('wallet')" class="secondary"><i class="fas fa-plus"></i> <span data-i18n="addBtn">Adicionar</span></button>
+                    <button onclick="navTo('analytics')" class="secondary"><i class="fas fa-chart-pie"></i> <span data-i18n="detailsBtn">Detalhes</span></button>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2 data-i18n="dailyWisdom">✨ Sabedoria do Dia</h2>
+                <p id="daily-quote" style="font-style: italic; color: var(--text-secondary); line-height: 1.5;">"..."</p>
+            </div>
+
+            <div class="card">
+                <h2 data-i18n="recentActivity">Atividade Recente</h2>
+                <div id="recent-transactions"></div>
+            </div>
+        </div>
+
+        <div id="wallet" class="section">
+            <div class="card">
+                <h2 data-i18n="newTransaction">Nova Transação</h2>
+                <form id="trans-form">
+                    <select id="t-type">
+                        <option value="expense" data-i18n="expense">Despesa 📉</option>
+                        <option value="income" data-i18n="income">Receita 📈</option>
+                    </select>
+                    <input type="text" id="t-desc" placeholder="Descrição (ex: Almoço)" required>
+                    <input type="number" id="t-amount" placeholder="0.00" step="0.01" required>
+                    <select id="t-cat">
+                        <option value="Food" data-i18n="catFood">Alimentação</option>
+                        <option value="Transport" data-i18n="catTransport">Transporte</option>
+                        <option value="Housing" data-i18n="catHousing">Moradia</option>
+                        <option value="Salary" data-i18n="catSalary">Salário/Vendas</option>
+                        <option value="Invest" data-i18n="catInvest">Investimento</option>
+                        <option value="Other" data-i18n="catOther">Outros</option>
+                    </select>
+                    <button type="submit" data-i18n="save">Salvar</button>
+                </form>
+            </div>
+            <div class="card">
+                <h2 data-i18n="history">Histórico</h2>
+                <div id="full-history"></div>
+            </div>
+        </div>
+
+        <div id="sage" class="section">
+            <div class="card">
+                <h2 data-i18n="sageLessons">Lições dos Sábios</h2>
+                <p data-i18n="sageIntro" style="font-size:0.9rem; margin-bottom:15px; color: var(--text-secondary);">Estude para desbloquear sua mente milionária.</p>
+                <div id="lessons-container"></div>
+            </div>
+        </div>
+
+        <div id="mindset" class="section">
+            <div class="card">
+                <h2 data-i18n="bizProfile">Perfil de Negócios</h2>
+                <div id="quiz-area">
+                    <p data-i18n="quizIntro">Descubra seu arquétipo empresarial para tomar decisões melhores.</p>
+                    <button onclick="startQuiz()" data-i18n="startQuiz">Iniciar Questionário</button>
+                </div>
+                
+                <div id="quiz-questions" style="display:none;">
+                    <h3 id="q-text" style="margin-bottom: 15px;">Pergunta...</h3>
+                    <div id="q-options" style="display:flex; flex-direction:column; gap:10px;"></div>
+                </div>
+                
+                <div id="quiz-result" style="display:none; text-align:center;">
+                    <i class="fas fa-award" style="font-size: 3rem; color: var(--accent); margin-bottom: 10px;"></i>
+                    <h1 id="result-title" style="color:var(--accent); margin-bottom: 10px;"></h1>
+                    <p id="result-desc" style="margin-bottom: 20px;"></p>
+                    <button onclick="resetQuiz()" class="secondary" data-i18n="redoQuiz">Refazer</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="analytics" class="section">
+            <div class="card">
+                <h2 data-i18n="financialXray">Raio-X Financeiro</h2>
+                <div class="chart-container">
+                    <canvas id="expenseChart"></canvas>
+                </div>
+                <div style="text-align: center; margin-top: 15px; font-size: 0.8rem; color: var(--text-secondary);">
+                    * Apenas despesas são mostradas no gráfico.
+                </div>
+            </div>
+        </div>
     </div>
-  </div>
 
-  <!-- GESTÃO EMPRESARIAL -->
-  <div id="gestao" class="tab-content">
-    <div class="card">
-      <h2>🏭 Gestão Empresarial - Dashboard</h2>
-      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:1rem;text-align:center;">
-        <div class="card" style="padding:2rem;font-size:1.3rem;">
-          Saldo Atual<br><span id="dash-saldo" style="font-size:2rem;color:var(--primary-dark);">R$ 0,00</span>
+    <nav class="nav-bar">
+        <div class="nav-item active" data-target="dash" onclick="navTo('dash')">
+            <i class="fas fa-home"></i> <span data-i18n="navHome">Início</span>
         </div>
-        <div class="card" style="padding:2rem;">
-          <strong>Citação do Dia</strong><br>
-          <p id="citacao" style="font-style:italic;margin-top:1rem;"></p>
+        <div class="nav-item" data-target="wallet" onclick="navTo('wallet')">
+            <i class="fas fa-wallet"></i> <span data-i18n="navWallet">Carteira</span>
         </div>
-      </div>
-      <div class="card" style="margin-top:2rem;">
-        <h3>Dicas Práticas</h3>
-        <ul>
-          <li>Reinvista 50% dos lucros no negócio nos primeiros 3 anos</li>
-          <li>Tenha pelo menos 6 meses de reserva operacional</li>
-          <li>Automatize tudo que for repetitivo</li>
-          <li>Estude o mercado todo dia por 30 minutos</li>
-        </ul>
-      </div>
-    </div>
-  </div>
-
-  <!-- SIMULADOR DE INVESTIMENTOS -->
-  <div id="simulador" class="tab-content">
-    <div class="card">
-      <h2>📈 Simulador de Juros Compostos</h2>
-      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:1rem;max-width:800px;">
-        <div>
-          <label>Capital Inicial (R$)</label>
-          <input type="number" id="capital" value="10000" step="100">
+        <div class="nav-item" data-target="sage" onclick="navTo('sage')">
+            <i class="fas fa-book-open"></i> <span data-i18n="navLearn">Aprender</span>
         </div>
-        <div>
-          <label>Taxa mensal (%)</label>
-          <input type="number" id="taxa" value="1" step="0.01">
+        <div class="nav-item" data-target="mindset" onclick="navTo('mindset')">
+            <i class="fas fa-brain"></i> <span data-i18n="navMind">Mindset</span>
         </div>
-        <div>
-          <label>Período (meses)</label>
-          <input type="number" id="meses" value="120">
-        </div>
-      </div>
-      <button onclick="simular()" style="margin:1.5rem 0;">Simular Investimento</button>
-      <div id="resultado-simulador" style="font-size:1.4rem;text-align:center;"></div>
-      <canvas id="grafico" style="max-width:100%;height:350px;margin-top:2rem;"></canvas>
-    </div>
-  </div>
-
-  <!-- ASSISTENTE DE NEGÓCIOS -->
-  <div id="assistente" class="tab-content">
-    <div class="card">
-      <h2>🧠 Assistente de Negócios - Questionário Estratégico (15 perguntas)</h2>
-      <form id="quiz-form">
-        <div class="pergunta"><p>1. O que mais te motiva ao pensar em empreender?</p>
-          <label><input type="radio" name="q1" value="A" required> Criar algo revolucionário que mude vidas</label>
-          <label><input type="radio" name="q1" value="B"> Construir sistemas eficientes que funcionem sem mim</label>
-          <label><input type="radio" name="q1" value="C"> Vender, negociar e fechar grandes contratos</label>
-          <label><input type="radio" name="q1" value="D"> Ter segurança financeira e crescimento previsível</label>
-        </div>
-        <div class="pergunta"><p>2. Qual sua maior força?</p>
-          <label><input type="radio" name="q2" value="A"> Visão de futuro e criatividade</label>
-          <label><input type="radio" name="q2" value="B"> Organização e execução impecável</label>
-          <label><input type="radio" name="q2" value="C"> Carisma e habilidade de vendas</label>
-          <label><input type="radio" name="q2" value="D"> Análise detalhada e controle de riscos</label>
-        </div>
-        <div class="pergunta"><p>3. Como você reage a uma ideia nova?</p>
-          <label><input type="radio" name="q3" value="A"> Fico empolgado e já quero implementar</label>
-          <label><input type="radio" name="q3" value="B"> Planejo cada etapa antes de começar</label>
-          <label><input type="radio" name="q3" value="C"> Vejo como posso vender essa ideia</label>
-          <label><input type="radio" name="q3" value="D"> Analiso todos os riscos primeiro</label>
-        </div>
-        <div class="pergunta"><p>4. Seu maior medo no negócio é:</p>
-          <label><input type="radio" name="q4" value="A"> Não causar impacto no mundo</label>
-          <label><input type="radio" name="q4" value="B"> Perder o controle das operações</label>
-          <label><input type="radio" name="q4" value="C"> Não conseguir clientes</label>
-          <label><input type="radio" name="q4" value="D"> Perder dinheiro</label>
-        </div>
-        <div class="pergunta"><p>5. Você prefere trabalhar:</p>
-          <label><input type="radio" name="q5" value="A"> Em projetos inovadores e arriscados</label>
-          <label><input type="radio" name="q5" value="B"> Em processos já testados e otimizados</label>
-          <label><input type="radio" name="q5" value="C"> Diretamente com clientes e networking</label>
-          <label><input type="radio" name="q5" value="D"> Com planilhas, números e relatórios</label>
-        </div>
-        <div class="pergunta"><p>6. Seu modelo de negócio ideal é:</p>
-          <label><input type="radio" name="q6" value="A"> Startup de tecnologia ou produto revolucionário</label>
-          <label><input type="radio" name="q6" value="B"> Franquia ou negócio escalável com sistemas</label>
-          <label><input type="radio" name="q6" value="C"> E-commerce ou serviço baseado em vendas</label>
-          <label><input type="radio" name="q6" value="D"> Imóveis ou investimentos de longo prazo</label>
-        </div>
-        <div class="pergunta"><p>7. Você se sente mais vivo quando:</p>
-          <label><input type="radio" name="q7" value="A"> Está criando algo do zero</label>
-          <label><input type="radio" name="q7" value="B"> Tudo está funcionando perfeitamente</label>
-          <label><input type="radio" name="q7" value="C"> Fecha uma grande venda</label>
-          <label><input type="radio" name="q7" value="D"> Os números estão batendo com o planejado</label>
-        </div>
-        <div class="pergunta"><p>8. Em uma crise você:</p>
-          <label><input type="radio" name="q8" value="A"> Cria uma solução inovadora</label>
-          <label><input type="radio" name="q8" value="B"> Otimiza custos imediatamente</label>
-          <label><input type="radio" name="q8" value="C"> Liga para clientes e negocia</label>
-          <label><input type="radio" name="q8" value="D"> Revisa todo o planejamento financeiro</label>
-        </div>
-        <div class="pergunta"><p>9. Seu herói empreendedor é mais parecido com:</p>
-          <label><input type="radio" name="q9" value="A"> Elon Musk / Steve Jobs</label>
-          <label><input type="radio" name="q9" value="B"> Ray Kroc (McDonald's) / Sam Walton</label>
-          <label><input type="radio" name="q9" value="C"> Grant Cardone / Zig Ziglar</label>
-          <label><input type="radio" name="q9" value="D"> Warren Buffett / Ray Dalio</label>
-        </div>
-        <div class="pergunta"><p>10. Você prefere ganhar dinheiro:</p>
-          <label><input type="radio" name="q10" value="A"> Criando valor novo</label>
-          <label><input type="radio" name="q10" value="B"> Escalando operações</label>
-          <label><input type="radio" name="q10" value="C"> Vendendo mais</label>
-          <label><input type="radio" name="q10" value="D"> Investindo com inteligência</label>
-        </div>
-        <div class="pergunta"><p>11-15. (Repetindo padrão para completar as 15 perguntas - mesmo estilo)</p>
-          <!-- Perguntas 11 a 15 são variações das anteriores para garantir distribuição equilibrada -->
-          <label><input type="radio" name="q11" value="A"> Inovando sempre</label><label><input type="radio" name="q11" value="B"> Otimizando processos</label><label><input type="radio" name="q11" value="C"> Fechando vendas</label><label><input type="radio" name="q11" value="D"> Controlando riscos</label>
-          <label><input type="radio" name="q12" value="A"> Visão</label><label><input type="radio" name="q12" value="B"> Execução</label><label><input type="radio" name="q12" value="C"> Persuasão</label><label><input type="radio" name="q12" value="D"> Análise</label>
-          <label><input type="radio" name="q13" value="A"> Revolucionar</label><label><input type="radio" name="q13" value="B"> Sistematizar</label><label><input type="radio" name="q13" value="C"> Vender</label><label><input type="radio" name="q13" value="D"> Proteger</label>
-          <label><input type="radio" name="q14" value="A"> Criar</label><label><input type="radio" name="q14" value="B"> Gerenciar</label><label><input type="radio" name="q14" value="C"> Negociar</label><label><input type="radio" name="q14" value="D"> Investir</label>
-          <label><input type="radio" name="q15" value="A"> Mudar o mundo</label><label><input type="radio" name="q15" value="B"> Construir império</label><label><input type="radio" name="q15" value="C"> Conquistar clientes</label><label><input type="radio" name="q15" value="D"> Preservar riqueza</label>
-        </div>
-
-        <button type="button" onclick="calcularPerfil()">Ver Meu Perfil Empresarial</button>
-      </form>
-
-      <div id="resultado-quiz" style="display:none;" class="resultado">
-        <h2>Seu Perfil Dominante: <span id="perfil-letra"></span> - <span id="perfil-nome"></span></h2>
-        <p id="recomendacao"></p>
-        <p id="observacao-final" style="margin-top:2rem;font-size:1.1rem;"></p>
-      </div>
-    </div>
-  </div>
-
-</div>
+    </nav>
 
 <script>
-let db;
-const lessons = [
-  {title: "Pague a si mesmo primeiro (10% mínimo)", desc: "A primeira cura para uma bolsa magra - O Homem Mais Rico da Babilônia", fonte: "O Homem Mais Rico da Babilônia"},
-  {title: "Controle tuas despesas", desc: "Viva com 70-80% da renda. O resto é lucro e investimento.", fonte: "O Homem Mais Rico da Babilônia"},
-  {title: "Faça teu ouro multiplicar", desc: "Invista seus lucros para que gerem mais ouro.", fonte: "O Homem Mais Rico da Babilônia"},
-  {title: "Proteja seus tesouros de perdas", desc: "Só invista onde seu principal está seguro e possa ser recuperado.", fonte: "O Homem Mais Rico da Babilônia"},
-  {title: "O Universo é Mental", desc: "Tudo começa na mente. Pense riqueza para atrair riqueza.", fonte: "O Caibalion"},
-  {title: "Princípio de Correspondência", desc: "Como é em cima, é embaixo. Sua realidade externa reflete sua mente interna.", fonte: "O Caibalion"},
-  {title: "Parábola dos Talentos", desc: "Aquele que multiplica recebe mais; o que enterra, perde até o que tem.", fonte: "Bíblia - Mateus 25"},
-  {title: "A fé sem obras é morta", desc: "Acreditar é bom, mas agir é essencial.", fonte: "Tiago 2:17"},
-  {title: "A preguiça leva à pobreza", desc: "O preguiçoso deseja e nada consegue, mas os desejos do diligente são amplamente satisfeitos.", fonte: "Provérbios 13:4"},
-  {title: "O homem prudente vê o mal e se esconde-se", desc: "Planeje, preveja riscos e proteja-se.", fonte: "Provérbios 22:3"},
-];
+/* --- 1. CONFIGURAÇÃO & TRADUÇÃO --- */
+const i18n = {
+    pt: {
+        navHome: "Início", navWallet: "Carteira", navLearn: "Aprender", navMind: "Mindset",
+        currentBalance: "Saldo Total", addBtn: "Adicionar", detailsBtn: "Detalhes",
+        dailyWisdom: "Sabedoria do Dia", recentActivity: "Atividade Recente",
+        newTransaction: "Nova Transação", expense: "Despesa 📉", income: "Receita 📈",
+        catFood: "Alimentação", catTransport: "Transporte", catHousing: "Moradia", catSalary: "Salário", catInvest: "Investimento", catOther: "Outros",
+        save: "Salvar Transação", history: "Histórico Completo",
+        sageLessons: "Lições dos Sábios", sageIntro: "Estude para desbloquear sua mente milionária.",
+        bizProfile: "Perfil de Negócios", quizIntro: "Descubra seu arquétipo.", startQuiz: "Iniciar Teste", redoQuiz: "Refazer Teste",
+        financialXray: "Raio-X Financeiro", newLevel: "Você alcançou o nível:", awesome: "Incrível!",
+        ranks: ["Iniciante", "Aprendiz", "Poupador", "Investidor", "Mestre", "Magnata", "Lenda"]
+    },
+    en: {
+        navHome: "Home", navWallet: "Wallet", navLearn: "Learn", navMind: "Mindset",
+        currentBalance: "Total Balance", addBtn: "Add", detailsBtn: "Details",
+        dailyWisdom: "Daily Wisdom", recentActivity: "Recent Activity",
+        newTransaction: "New Transaction", expense: "Expense 📉", income: "Income 📈",
+        catFood: "Food", catTransport: "Transport", catHousing: "Housing", catSalary: "Salary", catInvest: "Investment", catOther: "Other",
+        save: "Save Transaction", history: "Full History",
+        sageLessons: "Sage Lessons", sageIntro: "Study to unlock your millionaire mind.",
+        bizProfile: "Business Profile", quizIntro: "Discover your archetype.", startQuiz: "Start Quiz", redoQuiz: "Retake",
+        financialXray: "Financial X-Ray", newLevel: "You reached level:", awesome: "Awesome!",
+        ranks: ["Novice", "Apprentice", "Saver", "Investor", "Master", "Tycoon", "Legend"]
+    },
+    es: {
+        navHome: "Inicio", navWallet: "Cartera", navLearn: "Aprender", navMind: "Mentalidad",
+        currentBalance: "Saldo Total", addBtn: "Añadir", detailsBtn: "Detalles",
+        dailyWisdom: "Sabiduría Diaria", recentActivity: "Actividad Reciente",
+        newTransaction: "Nueva Transacción", expense: "Gasto 📉", income: "Ingreso 📈",
+        catFood: "Comida", catTransport: "Transporte", catHousing: "Vivienda", catSalary: "Salario", catInvest: "Inversión", catOther: "Otros",
+        save: "Guardar", history: "Historial",
+        sageLessons: "Lecciones Sabias", sageIntro: "Estudia para desbloquear tu mente millonaria.",
+        bizProfile: "Perfil de Negocio", quizIntro: "Descubre tu arquetipo.", startQuiz: "Iniciar Quiz", redoQuiz: "Rehacer",
+        financialXray: "Rayos-X Financiero", newLevel: "Alcanzaste el nivel:", awesome: "¡Genial!",
+        ranks: ["Novato", "Aprendiz", "Ahorrador", "Inversor", "Maestro", "Magnate", "Leyenda"]
+    }
+};
 
-const citacoes = [
-  "A sorte é o que acontece quando a preparação encontra a oportunidade.",
-  "Riqueza é o resultado de hábitos corretos aplicados consistentemente.",
-  "O dinheiro trabalha para quem sabe usá-lo.",
-  "Invista primeiro em sua educação financeira.",
-  "O medo da perda é maior que o desejo de ganho na maioria das pessoas."
-];
+// Detecção segura de idioma
+let userLang = navigator.language || navigator.userLanguage; 
+let initialLang = 'en';
+if (userLang.startsWith('pt')) initialLang = 'pt';
+else if (userLang.startsWith('es')) initialLang = 'es';
+
+let lang = localStorage.getItem('dk_lang') || initialLang;
+document.getElementById('lang-selector').value = lang;
+
+function t(key) {
+    if (!i18n[lang]) return key;
+    return i18n[lang][key] || key;
+}
+
+function updateUI() {
+    document.querySelectorAll('[data-i18n]').forEach(el => {
+        el.innerText = t(el.getAttribute('data-i18n'));
+    });
+    // Atualiza opções de select
+    document.querySelectorAll('option[data-i18n]').forEach(el => {
+        el.innerText = t(el.getAttribute('data-i18n'));
+    });
+    updateUserRankUI();
+    if (document.getElementById('analytics').classList.contains('active')) {
+        renderChart();
+    }
+    loadTransactions(); // Recarrega nomes traduzidos no histórico
+}
+
+function changeLanguage(val) {
+    lang = val;
+    localStorage.setItem('dk_lang', lang);
+    updateUI();
+    loadLessons(); 
+}
+
+/* --- 2. BANCO DE DADOS (DEXIE.JS) --- */
+const db = new Dexie("DKFinanceDB");
+db.version(1).stores({
+    transactions: '++id, type, amount, category, date',
+    user: 'id, xp, level, name',
+    lessons: 'id, completed'
+});
+
+/* --- 3. LÓGICA DO APP --- */
+let currentUser = { xp: 0, level: 0 };
 
 async function init() {
-  const SQL = await initSqlJs({
-    locateFile: file => `https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.3/${file}`
-  });
-  const saved = localStorage.getItem('dk_financeiro_db');
-  db = saved ? new SQL.Database(new Uint8Array(JSON.parse(saved))) : new SQL.Database();
-
-  db.run(`CREATE TABLE IF NOT EXISTS transacoes (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    tipo TEXT,
-    valor REAL,
-    categoria TEXT,
-    descricao TEXT,
-    data TEXT
-  )`);
-  db.run(`CREATE TABLE IF NOT EXISTS licoes_concluidas (
-    lesson_id INTEGER PRIMARY KEY,
-    concluida INTEGER
-  )`);
-
-  // Inicializa lições se não existirem
-  const count = db.exec("SELECT COUNT(*) FROM licoes_concluidas")[0]?.values[0][0] || 0;
-  if (count === 0) {
-    lessons.forEach((_, i) => db.run("INSERT INTO licoes_concluidas (lesson_id, concluida) VALUES (?, 0)", [i+1]));
-  }
-
-  loadLessons();
-  loadTransactions();
-  loadDashboard();
-  document.querySelector('#citacao').innerText = citacoes[Math.floor(Math.random() * citacoes.length)];
-
-  saveDb();
-}
-
-function saveDb() {
-  localStorage.setItem('dk_financeiro_db', JSON.stringify(Array.from(db.export())));
-}
-
-function openTab(tab) {
-  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
-  document.querySelectorAll('nav a').forEach(a => a.classList.remove('active'));
-  document.getElementById(tab).classList.add('active');
-  document.querySelector(`a[href="#${tab}"]`).classList.add('active');
-
-  if (tab === 'controle') loadTransactions();
-  if (tab === 'gestao') loadDashboard();
-}
-
-function loadLessons() {
-  const list = document.getElementById('lessons-list');
-  list.innerHTML = '';
-  let concluidas = 0;
-
-  lessons.forEach((lesson, i) => {
-    const res = db.exec(`SELECT concluida FROM licoes_concluidas WHERE lesson_id = ${i+1}`)[0]?.values[0][0] || 0;
-    if (res === 1) concluidas++;
-
-    const div = document.createElement('div');
-    div.className = 'card';
-    div.innerHTML = `
-      <h3>${lesson.title} <em>(${lesson.fonte})</em></h3>
-      <p>${lesson.desc}</p>
-      <label style="display:block;margin-top:1rem;">
-        <input type="checkbox" ${res === 1 ? 'checked' : ''} onchange="toggleLesson(${i+1}, this.checked)">
-        <strong>Marcar como concluída</strong>
-      </label>
-    `;
-    list.appendChild(div);
-  });
-
-  const percent = Math.round((concluidas / lessons.length) * 100);
-  document.getElementById('progress-fill').style.width = percent + '%';
-  document.getElementById('progress-text').innerText = percent + '%';
-}
-
-function toggleLesson(id, checked) {
-  db.run(`UPDATE licoes_concluidas SET concluida = ? WHERE lesson_id = ?`, [checked ? 1 : 0, id]);
-  saveDb();
-  loadLessons();
-  loadDashboard();
-}
-
-function addTransaction() {
-  const tipo = document.getElementById('type-trans').value;
-  const valor = parseFloat(document.getElementById('valor-trans').value);
-  const categoria = document.getElementById('categoria-trans').value || (tipo === 'Receita' ? 'Outras receitas' : 'Outras despesas');
-  const descricao = document.getElementById('desc-trans').value;
-  const data = document.getElementById('data-trans').value || new Date().toISOString().split('T')[0];
-
-  if (!valor || isNaN(valor)) return alert('Preencha os campos');
-
-  db.run("INSERT INTO transacoes (tipo, valor, categoria, descricao, data) VALUES (?, ?, ?, ?, ?)", 
-    [tipo, valor, categoria, descricao, data]);
-  saveDb();
-  loadTransactions();
-  loadDashboard();
-  document.getElementById('valor-trans').value = '';
-  document.getElementById('desc-trans').value = '';
-}
-
-function loadTransactions() {
-  const tbody = document.querySelector('#tabela-transacoes tbody');
-  tbody.innerHTML = '';
-  const res = db.exec("SELECT * FROM transacoes ORDER BY data DESC, id DESC");
-
-  if (res.length > 0) {
-    res[0].values.forEach(row => {
-      const tr = document.createElement('tr');
-      tr.innerHTML = `<td>${row[5]}</td><td class="${row[1] === 'Receita' ? 'receita' : 'despesa'}">${row[1]}</td><td>${row[2]}</td><td>${row[3]}</td><td>R$ ${parseFloat(row[1]).toFixed(2)}</td>`;
-      tbody.appendChild(tr);
-    });
-  }
-  calcularSaldo();
-}
-
-function calcularSaldo() {
-  const rec = db.exec("SELECT COALESCE(SUM(valor),0) FROM transacoes WHERE tipo='Receita'")[0].values[0][0];
-  const desp = db.exec("SELECT COALESCE(SUM(valor),0) FROM transacoes WHERE tipo='Despesa'")[0].values[0][0];
-  const saldo = (rec || 0) - (desp || 0);
-  document.getElementById('saldo-atual').innerText = `R$ ${saldo.toFixed(2)}`;
-  document.getElementById('dash-saldo').innerText = `R$ ${saldo.toFixed(2)}`;
-}
-
-function loadDashboard() {
-  calcularSaldo();
-  document.getElementById('citacao').innerText = citacoes[Math.floor(Math.random() * citacoes.length)];
-}
-
-function simular() {
-  const capital = parseFloat(document.getElementById('capital').value);
-  const taxa = parseFloat(document.getElementById('taxa').value) / 100;
-  const meses = parseInt(document.getElementById('meses').value);
-
-  if (isNaN(capital) || isNaN(taxa) || isNaN(meses)) return;
-
-  const montante = capital * Math.pow(1 + taxa, meses);
-  const ganho = montante - capital;
-
-  document.getElementById('resultado-simulador').innerHTML = `
-    <strong>Montante Final: R$ ${montante.toFixed(2)}</strong><br>
-    Ganho Total: R$ ${ganho.toFixed(2)}<br>
-    Retorno: ${((ganho/capital)*100).toFixed(1)}% em ${meses} meses
-  `;
-
-  const ctx = document.getElementById('grafico').getContext('2d');
-  const labels = Array.from({length: meses+1}, (_, i) => i === 0 ? 'Início' : `Mês ${i}`);
-  const data = [];
-  let atual = capital;
-  for(let i = 0; i <= meses; i++) {
-    data.push(Number(atual.toFixed(2)));
-    if (i < meses) atual *= (1 + taxa);
-  }
-
-  if (window.graficoChart) window.graficoChart.destroy();
-  window.graficoChart = new Chart(ctx, {
-    type: 'line',
-    data: { labels, datasets: [{ label: 'Crescimento (Juros Compostos)', data, borderColor: var(--primary), tension: 0.1 }] },
-    options: { scales: { y: { beginAtZero: true } } }
-  });
-}
-
-function calcularPerfil() {
-  const respostas = {};
-  for (let i = 1; i <= 15; i++) {
-    const sel = document.querySelector(`input[name="q${i}"]:checked`);
-    if (sel) respostas[sel.value] = (respostas[sel.value] || 0) + 1;
-  }
-
-  let max = 0;
-  let perfil = '';
-  for (let p in respostas) {
-    if (respostas[p] > max) {
-      max = respostas[p];
-      perfil = p;
+    // Init User
+    let user = await db.user.get(1);
+    if (!user) {
+        user = { id: 1, xp: 0, level: 0, name: "Futuro Milionário" };
+        await db.user.add(user);
     }
-  }
-
-  const perfis = {
-    A: {nome: "CRIADOR / VISIONÁRIO", rec: "Você deve criar produtos ou serviços inovadores (aplicativos, tecnologia, conteúdo digital, infoprodutos). Investimento inicial médio-alto, retorno em 3-8 anos. Foque em equipe técnica forte."},
-    B: {nome: "OPERADOR / SISTEMATIZADOR", rec: "Você é perfeito para franquias, lojas físicas, serviços locais, restaurantes, lavanderia, etc. Invista em sistemas e processos. Retorno mais rápido (1-4 anos)."},
-    C: {nome: "VENDEDOR / COMUNICADOR", rec: "E-commerce, marketing digital, representação comercial, corretagem, infoprodutos de vendas. Seu sucesso depende de tráfego e fechamento. Retorno pode ser muito rápido."},
-    D: {nome: "ANALISTA / INVESTIDOR", rec: "Imóveis, mercado financeiro, franquias conhecidas, fundos. Priorize preservação de capital e crescimento estável. Retorno mais lento porém seguro (5-15 anos)."}
-  };
-
-  document.getElementById('perfil-letra').innerText = perfil;
-  document.getElementById('perfil-nome').innerText = perfis[perfil].nome;
-  document.getElementById('recomendacao').innerHTML = perfis[perfil].rec;
-  document.getElementById('observacao-final').innerHTML = "<strong>Observação final:</strong> Nenhum perfil é melhor que outro. Todos podem ficar ricos. O segredo é conhecer-se e escolher o veículo correto para sua personalidade. Estude, aja e persista!";
-  document.getElementById('resultado-quiz').style.display = 'block';
-  document.getElementById('resultado-quiz').scrollIntoView({behavior: 'smooth'});
+    currentUser = user;
+    
+    updateUI();
+    loadTransactions();
+    loadLessons();
+    updateXP(0); 
+    
+    // Citações
+    const quotes = [
+        "O dinheiro é um excelente servo, mas um péssimo mestre.",
+        "A riqueza começa na mente.",
+        "Não trabalhe pelo dinheiro, faça o dinheiro trabalhar por você.",
+        "Pague a si mesmo primeiro.",
+        "Investir em conhecimento rende sempre os melhores juros."
+    ];
+    document.getElementById('daily-quote').innerText = "${quotes[Math.floor(Math.random() * quotes.length)]}";
 }
 
-window.onload = init;
+/* Navegação Robusta */
+function navTo(sectionId) {
+    // Esconder todas as seções
+    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+    
+    // Mostrar a seção alvo
+    const targetSection = document.getElementById(sectionId);
+    if (targetSection) targetSection.classList.add('active');
+    
+    // Atualizar menu inferior
+    document.querySelectorAll('.nav-item').forEach(n => {
+        n.classList.remove('active');
+        if(n.getAttribute('data-target') === sectionId) {
+            n.classList.add('active');
+        }
+    });
+    
+    if(sectionId === 'analytics') renderChart();
+    window.scrollTo(0,0);
+}
+
+/* Gamificação */
+function updateXP(amount) {
+    currentUser.xp += amount;
+    
+    // Level Up: Cada 100 XP
+    const newLevel = Math.floor(currentUser.xp / 100);
+    if (newLevel > currentUser.level) {
+        currentUser.level = newLevel;
+        showLevelUpModal();
+    }
+    
+    db.user.put(currentUser);
+    
+    // UI Update
+    const currentLevelXP = currentUser.xp % 100;
+    document.getElementById('xp-val').innerText = currentLevelXP;
+    document.getElementById('xp-fill').style.width = ${currentLevelXP}%;
+    updateUserRankUI();
+}
+
+function updateUserRankUI() {
+    const ranks = i18n[lang].ranks;
+    // Garante que o index não estoure o array
+    const rankIndex = Math.min(currentUser.level, ranks.length - 1);
+    const rankName = ranks[rankIndex];
+    document.getElementById('user-rank').innerText = ${rankName} (Lvl ${currentUser.level});
+}
+
+function showLevelUpModal() {
+    const ranks = i18n[lang].ranks;
+    const rankIndex = Math.min(currentUser.level, ranks.length - 1);
+    document.getElementById('new-level-name').innerText = ranks[rankIndex];
+    
+    const modal = document.getElementById('levelup-modal');
+    modal.classList.add('show');
+}
+
+function closeLevelModal() {
+    document.getElementById('levelup-modal').classList.remove('show');
+}
+
+/* Finanças */
+document.getElementById('trans-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const type = document.getElementById('t-type').value;
+    const amountVal = document.getElementById('t-amount').value;
+    const desc = document.getElementById('t-desc').value;
+    const category = document.getElementById('t-cat').value;
+
+    if(!amountVal || !desc) return;
+
+    const amount = parseFloat(amountVal);
+    
+    await db.transactions.add({
+        type, amount, desc, category, date: new Date()
+    });
+    
+    updateXP(10); // +10 XP por transação
+    loadTransactions();
+    
+    e.target.reset();
+    alert(t('save') + ' ✅');
+});
+
+async function loadTransactions() {
+    const trans = await db.transactions.orderBy('date').reverse().toArray();
+    
+    let total = 0;
+    // Traduz a categoria usando prefixo 'cat'
+    const formatTrans = (tItem) => {
+        const catTranslated = t('cat' + tItem.category); 
+        const isInc = tItem.type === 'income';
+        const dateStr = new Date(tItem.date).toLocaleDateString();
+        return `
+        <div class="trans-item">
+            <div class="trans-info">
+                <h4>${tItem.desc}</h4>
+                <span>${dateStr} - ${catTranslated}</span>
+            </div>
+            <div class="${isInc ? 'money-plus' : 'money-minus'}">
+                ${isInc ? '+' : '-'} ${tItem.amount.toFixed(2)}
+            </div>
+        </div>`;
+    };
+
+    const listHTML = trans.slice(0, 5).map(formatTrans).join('');
+    const fullListHTML = trans.map(formatTrans).join('');
+    
+    trans.forEach(tr => {
+        total += tr.type === 'income' ? tr.amount : -tr.amount;
+    });
+    
+    // Formatação de moeda baseada na língua
+    let currency = 'BRL';
+    if(lang === 'en') currency = 'USD';
+    if(lang === 'es') currency = 'EUR';
+
+    document.getElementById('total-balance').innerText = total.toLocaleString(lang, {style: 'currency', currency: currency});
+    document.getElementById('recent-transactions').innerHTML = listHTML || '<p style="text-align:center;opacity:0.5;padding:10px;">Sem dados.</p>';
+    document.getElementById('full-history').innerHTML = fullListHTML;
+}
+
+/* Gráficos */
+let myChart = null;
+
+async function renderChart() {
+    const trans = await db.transactions.toArray();
+    const cats = {};
+    
+    // Filtrar apenas despesas
+    trans.filter(t => t.type === 'expense').forEach(t => {
+        cats[t.category] = (cats[t.category] || 0) + t.amount;
+    });
+    
+    const ctx = document.getElementById('expenseChart');
+    if(!ctx) return;
+    
+    // Se não houver dados, não quebrar o gráfico
+    if(Object.keys(cats).length === 0) {
+        if (myChart) myChart.destroy();
+        return; 
+    }
+
+    if (myChart) myChart.destroy();
+    
+    const labels = Object.keys(cats).map(k => t('cat'+k));
+    const dataValues = Object.values(cats);
+
+    myChart = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: labels,
+            datasets: [{
+                data: dataValues,
+                backgroundColor: ['#e94560', '#0f3460', '#00b894', '#f39c12', '#8e44ad', '#3498db'],
+                borderWidth: 1,
+                borderColor: '#1a1a2e'
+            }]
+        },
+        options: { 
+            responsive: true, 
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { position: 'bottom', labels: { color: '#fff' } }
+            }
+        }
+    });
+}
+
+/* Lições */
+const lessonsData = [
+    {id: 1, title: "A Lei do Pagamento", text: "Separe 10% de tudo que ganha antes de gastar qualquer centavo."},
+    {id: 2, title: "Controle do Orçamento", text: "Diferencie desejos de necessidades. Viva com 90% do que ganha."},
+    {id: 3, title: "Aumente sua Habilidade", text: "A melhor forma de ganhar mais é aprender mais. Seu conhecimento é seu maior ativo."}
+];
+
+async function loadLessons() {
+    const completed = await db.lessons.toArray();
+    const completedIds = completed.map(c => c.id);
+    
+    const html = lessonsData.map(l => {
+        const isDone = completedIds.includes(l.id);
+        const btnText = isDone ? 'Concluído ✅' : Marcar como Lido (+50 XP);
+        
+        return `
+        <div class="card" style="border-left: 3px solid ${isDone ? 'var(--success)' : 'var(--accent)'}">
+            <h3>${l.title}</h3>
+            <p style="font-size:0.9rem; margin-bottom:10px; color: #ddd;">${l.text}</p>
+            <button class="secondary" onclick="toggleLesson(${l.id})" ${isDone ? 'disabled' : ''}>
+                ${btnText}
+            </button>
+        </div>`;
+    }).join('');
+    document.getElementById('lessons-container').innerHTML = html;
+}
+
+async function toggleLesson(id) {
+    await db.lessons.add({id: id, completed: 1});
+    updateXP(50);
+    loadLessons();
+}
+
+/* Quiz */
+const questions = [
+    {q: "O que te motiva mais?", a: ["Inovar/Criar", "Organizar/Otimizar", "Vender/Persuadir", "Analisar/Investir"]},
+    {q: "Como lida com altos riscos?", a: ["Adoro a emoção", "Evito ao máximo", "Gerencio com processos", "Calculo o retorno"]},
+    {q: "Onde está seu foco?", a: ["No Produto", "Na Operação", "No Cliente", "No Lucro"]}
+];
+let quizStep = 0;
+let quizScores = {A:0, B:0, C:0, D:0}; 
+
+function startQuiz() {
+    document.getElementById('quiz-area').style.display = 'none';
+    document.getElementById('quiz-questions').style.display = 'block';
+    quizStep = 0;
+    quizScores = {A:0, B:0, C:0, D:0};
+    showQuestion();
+}
+
+function showQuestion() {
+    if (quizStep >= questions.length) return finishQuiz();
+    const q = questions[quizStep];
+    document.getElementById('q-text').innerText = ${quizStep+1}. ${q.q};
+    const opts = document.getElementById('q-options');
+    opts.innerHTML = '';
+    
+    // Mapeando respostas para perfis
+    const types = ['A','B','C','D'];
+    q.a.forEach((ans, i) => {
+        opts.innerHTML += <button class="secondary" onclick="answer('${types[i]}')">${ans}</button>;
+    });
+}
+
+function answer(type) {
+    quizScores[type]++;
+    quizStep++;
+    showQuestion();
+}
+
+function finishQuiz() {
+    document.getElementById('quiz-questions').style.display = 'none';
+    document.getElementById('quiz-result').style.display = 'block';
+    
+    // Determinar vencedor
+    const winner = Object.keys(quizScores).reduce((a, b) => quizScores[a] >= quizScores[b] ? a : b);
+    
+    const profiles = {
+        A: {t: "O Visionário (Criador)", d: "Você deve focar em criar produtos, startups e inovação."},
+        B: {t: "O Gestor (Operador)", d: "Você brilha organizando processos, equipes e sistemas."},
+        C: {t: "O Negociador (Vendedor)", d: "Sua fortuna virá de vendas, marketing e networking."},
+        D: {t: "O Estrategista (Investidor)", d: "Multiplique capital através de juros compostos e alocação de ativos."}
+    };
+    
+    const result = profiles[winner];
+    document.getElementById('result-title').innerText = result.t;
+    document.getElementById('result-desc').innerText = result.d;
+    
+    // Só ganha XP na primeira vez (opcional, aqui deixei sempre ganhar para demo)
+    updateXP(100);
+}
+
+function resetQuiz() {
+    document.getElementById('quiz-result').style.display = 'none';
+    document.getElementById('quiz-area').style.display = 'block';
+}
+
+// Inicializar
+window.addEventListener('DOMContentLoaded', init);
+
 </script>
 </body>
 </html>
-
-
-Pronto! 
-
-Este é o *DK Upload Financeiro completo, 100% funcional, bonito e responsivo*.
-
-- Tudo salvo localmente (SQL.js + localStorage)  
-- Funciona 100% offline  
-- Interface limpa e mobile-first  
-- 15 perguntas estratégicas com 4 perfis detalhados  
-- Simulador de juros compostos com gráfico  
-- Controle financeiro completo  
-- Lições dos sábios com progresso  
-- Dashboard com citação aleatória  
-
-Basta salvar como index.html e abrir no navegador (Chrome/Firefox/Edge). Todos os dados ficam salvos no seu navegador.
-
-Quer versão em inglês, espanhol ou com mais funcionalidades (exportar PDF, modo escuro, login, etc.)? Só pedir que eu evoluo! 🚀
